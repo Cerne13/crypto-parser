@@ -2,19 +2,20 @@ import random
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 from threading import Thread
 import datetime
 import time
 
+from fake_useragent import UserAgent
+
 # from main import *
 # from selenium.webdriver.common.keys import Keys
 # from selenium.webdriver.common.action_chains import ActionChains
 # from selenium.webdriver.chrome.service import Service
-# from selenium.webdriver.support.ui import WebDriverWait
-#
+
 # import schedule
-# import requests
 # from pyvirtualdisplay import Display
 # import os
 # import subprocess
@@ -26,13 +27,13 @@ import time
 
 def start_driver():
     options = webdriver.ChromeOptions()
-
     # options.add_argument('headless')
     # options.add_argument("enable-automation")
     # options.add_argument("--dns-prefetch-disable")
     # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+
     options.add_argument('--no-sandbox')
-    options.add_experimental_option("detach", True)
+    # options.add_experimental_option("detach", True)
     options.add_argument("--disable-gpu")
     options.add_argument("--disable-browser-side-navigation")
     options.add_argument("--force-device-scale-factor=1")
@@ -42,59 +43,64 @@ def start_driver():
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument("--profile-directory=Default")
 
+    ua = UserAgent()
+    user_agent = ua.random
+    print(user_agent)
+    options.add_argument(f'user-agent={user_agent}')
+
     browser = webdriver.Chrome(options=options)
     return browser
 
 
-# TODO: FOR TEST ONLY! Ask what the func should return
 def get_random():
     return random.randint(1, 10)
 
 
 def check_all():
     data = {}
-
-    # TODO: ask why we print an empty obj
-    print(data)
+    print(data if data else "The data object is empty yet")
 
     def check_tronscan(driver):
         url = 'https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
         driver.get(url)
-        print(driver)
 
         check_url_success = driver.current_url
         print(f'Url successfully got: {str(check_url_success)}')
 
-        time.sleep(5)
+        time.sleep(10)
 
-        check_page_available = driver.find_element(By.CSS_SELECTOR, '.logo').get_attribute('class')
-        print(f"{'Page successfully got' if check_page_available else 'Error: parsing blocked'}")
+        check_page_elems_available = driver.find_element(By.CSS_SELECTOR, '.csv-wrap').get_attribute('class')
+        print(f"{'Page successfully got' if check_page_elems_available else 'Error: parsing blocked'}")
 
         for i in range(20):
             try:
-                amount_temp = driver.find_element(By.CLASS_NAME, 'ant-table-tbody')
-                print(amount_temp)
-
-                amount = driver.find_element(by=By.XPATH,
-                                             value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i + 1}]/td[1]/span").text
-                time_trans = driver.find_element(by=By.XPATH,
-                                                 value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i + 1}]/td[4]/span/div/div").text
-                '''try:
-                    from_trans = driver.find_element(by=By.XPATH, value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i+1}]/td[5]/div/span/div/div/span/div/a/div").text
-                except:
-                    from_trans = driver.find_element(by=By.XPATH, value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i+1}]/td[5]/div/span/span/a/div").text
-                to_trans = driver.find_element(by=By.XPATH, value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i+1}]/td[6]/div/span/div/div/span/div/a/div").text
-                '''
-                hash = driver.find_element(by=By.XPATH,
-                                           value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[1]").text
-                hash2 = driver.find_element(by=By.XPATH,
-                                            value=f"/html/body/div[1]/div[2]/main/div/div/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div/div/div/div/div/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[2]").text
-                hash += hash2
+                amount = driver.find_element(
+                    By.XPATH,
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[1]/span/span'
+                ).text
                 amount = "$" + amount
+
+                time_trans = driver.find_element(
+                    By.XPATH,
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[4]/span/div/div'
+                ).text
                 time_trans = time_trans.split(" ")[0]
                 time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
                 time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
                              time_trans.split(" ")[1].split(".")[0].split(":")[1]
+
+                hash = driver.find_element(
+                    By.XPATH,
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[7]/div/div/span/a/div/div[1]'
+                ).text
+
+                hash2 = driver.find_element(
+                    By.XPATH,
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[7]/div/div/span/a/div/div[2]'
+                ).text
+
+                hash += hash2
+
                 changer = get_random()
 
                 data_transaction = {
@@ -106,40 +112,14 @@ def check_all():
                 }
 
                 data[len(data) + 1] = data_transaction
-                print(data_transaction)
             except Exception as a:
                 print(a)
-                continue
-
-    def check_blockchain(driver):
-        url = "https://www.blockchain.com/btc/unconfirmed-transactions"
-        driver.get(url)
-        time.sleep(1)
-        for i in range(50):
-            try:
-                hash = driver.find_element(by=By.XPATH,
-                                           value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[1]/div[2]/a").text
-                time_trans = driver.find_element(by=By.XPATH,
-                                                 value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[2]/div[2]/span").text
-                amount = driver.find_element(by=By.XPATH,
-                                             value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[4]/div[2]/span").text
-                changer = get_random()
-
-                data_transaction = {
-                    "amount": amount,
-                    "time_trans": time_trans,
-                    "hash": hash,
-                    "birz": "BLOCK",
-                    "changer": changer
-                }
-                data[len(data) + 1] = data_transaction
-            except:
                 continue
 
     def check_etherscan(driver):
         url = "https://etherscan.io/txs"
         driver.get(url)
-        driver.save_screenshot('ether.png')
+        # driver.save_screenshot('ether.png')
         time.sleep(1)
         for i in range(50):
             try:
@@ -166,24 +146,68 @@ def check_all():
             except Exception as a:
                 print(a)
 
-    driver = start_driver()
+    def check_blockchain(driver):
+        # We will go to mempool if we access unconfirmed transactions page directly.
+        # So we need to navigate from here
+        # target_url = "https://www.blockchain.com/btc/unconfirmed-transactions"
+        initial_url = 'https://www.blockchain.com/explorer?currency=BTC&stat=transactions'
 
-    # TODO: why do we start ether twice?
-    # check_etherscan(driver)
+        driver.get(initial_url)
+        time.sleep(1)
+
+        # Won't scrape unless button to target page is in view
+        driver.execute_script("window.scrollTo(0, 650)")
+        # time.sleep(3.2)
+
+        button = driver.find_element(By.CSS_SELECTOR, 'div.sc-18ep7w8-5.sc-18ep7w8-7.rKfqM.fLbSjJ button:last-child')
+        button.click()
+
+        time.sleep(1)
+
+        for i in range(50):
+            try:
+                btc_hash = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[1]/div[2]/a"
+                ).text
+                time_trans = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[2]/div[2]/span"
+                ).text
+                amount = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[4]/div[2]/span"
+                ).text
+
+                changer = get_random()
+
+                data_transaction = {
+                    "amount": amount,
+                    "time_trans": time_trans,
+                    "hash": btc_hash,
+                    "birz": "BLOCK",
+                    "changer": changer
+                }
+                data[len(data) + 1] = data_transaction
+                print(data_transaction)
+            except:
+                continue
 
     try:
+        driver = start_driver()
         check_tronscan(driver)
         driver.quit()
-        time.sleep(30)
 
-        # driver = start_driver()
-        # check_blockchain(driver)
-        # driver.quit()
-        # time.sleep(20)
-        #
-        # driver = start_driver()
-        # check_etherscan(driver)
-    except:
+        driver = start_driver()
+        check_etherscan(driver)
+        driver.quit()
+
+        # TODO: redo blockchain.com with API instead of scraping
+        driver = start_driver()
+        check_blockchain(driver)
+
+    except Exception as e:
+        print(e)
         driver.quit()
     finally:
         driver.quit()
@@ -196,4 +220,6 @@ def check_all():
 def start_parsing():
     thread = Thread(target=check_all)
     thread.start()
+
+
 check_all()
