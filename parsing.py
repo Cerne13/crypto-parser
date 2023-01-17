@@ -10,15 +10,14 @@ import time
 
 from fake_useragent import UserAgent
 
+
 # os.chmod('/usr/local/bin/chromedriver', 755)
 # display = Display(visible=0, size=(1024, 768))
 # display.start()
 
 def start_driver():
     options = webdriver.ChromeOptions()
-
     # options.add_experimental_option("detach", True)
-
     options.add_argument('--no-sandbox')
     options.add_argument("--disable-gpu")
     options.add_argument("--disable-browser-side-navigation")
@@ -42,6 +41,14 @@ def get_random():
     return random.randint(1, 10)
 
 
+def get_curr_date():
+    curr_datetime = datetime.date.today()
+    curr_date = curr_datetime.day
+    curr_month = curr_datetime.month
+    curr_year = curr_datetime.year
+    return (curr_date, curr_month, curr_year)
+
+
 def check_all():
     data = {}
     print(data if data else "The data object is empty yet")
@@ -62,13 +69,13 @@ def check_all():
             try:
                 amount = driver.find_element(
                     By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[1]/span/span'
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[1]/span/span'
                 ).text
                 amount = "$" + amount
 
                 time_trans = driver.find_element(
                     By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[4]/span/div/div'
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[4]/span/div/div'
                 ).text
                 time_trans = time_trans.split(" ")[0]
                 time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
@@ -77,21 +84,25 @@ def check_all():
 
                 hash = driver.find_element(
                     By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[7]/div/div/span/a/div/div[1]'
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[1]'
                 ).text
 
                 hash2 = driver.find_element(
                     By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i+1}]/td[7]/div/div/span/a/div/div[2]'
+                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[2]'
                 ).text
-
                 hash += hash2
 
                 changer = get_random()
 
+                date = get_curr_date()
+
                 data_transaction = {
                     "amount": amount,
                     "time_trans": time_trans,
+                    "day_trans": date[0],
+                    "month_trans": date[1],
+                    "year_trans": date[2],
                     "hash": hash,
                     "birz": "TRON",
                     "changer": changer
@@ -109,25 +120,40 @@ def check_all():
         time.sleep(1)
         for i in range(50):
             try:
-                hash = driver.find_element(by=By.XPATH,
-                                           value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[2]/span/a").text
-                time_trans = driver.find_element(by=By.XPATH,
-                                                 value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[6]/span").text
-                amount = driver.find_element(by=By.XPATH,
-                                             value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[10]").text
+                hash = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[2]/span/a"
+                ).text
+
+                time_trans = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[6]/span"
+                ).text
                 time_trans = time_trans.split(" ")[0]
                 time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
                 time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
                              time_trans.split(" ")[1].split(".")[0].split(":")[1]
+
+                amount = driver.find_element(
+                    by=By.XPATH,
+                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[10]"
+                ).text
+
                 changer = get_random()
+
+                date = get_curr_date()
 
                 data_transaction = {
                     "amount": amount,
                     "time_trans": time_trans,
+                    "day_trans": date[0],
+                    "month_trans": date[1],
+                    "year_trans": date[2],
                     "hash": hash,
                     "birz": "ETH",
                     "changer": changer
                 }
+
                 data[len(data) + 1] = data_transaction
             except Exception as a:
                 print(a)
@@ -143,12 +169,11 @@ def check_all():
 
         # Won't scrape unless button to target page is in view
         driver.execute_script("window.scrollTo(0, 650)")
-        # time.sleep(3.2)
 
         button = driver.find_element(By.CSS_SELECTOR, 'div.sc-18ep7w8-5.sc-18ep7w8-7.rKfqM.fLbSjJ button:last-child')
         button.click()
 
-        time.sleep(1)
+        time.sleep(2)
 
         for i in range(50):
             try:
@@ -167,13 +192,19 @@ def check_all():
 
                 changer = get_random()
 
+                date = get_curr_date()
+
                 data_transaction = {
                     "amount": amount,
                     "time_trans": time_trans,
-                    "hash": btc_hash,
+                    "day_trans": date[0],
+                    "month_trans": date[1],
+                    "year_trans": date[2],
+                    "hash": hash,
                     "birz": "BLOCK",
                     "changer": changer
                 }
+
                 data[len(data) + 1] = data_transaction
             except:
                 continue
