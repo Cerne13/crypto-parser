@@ -10,30 +10,16 @@ import time
 
 from fake_useragent import UserAgent
 
-# from main import *
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.common.action_chains import ActionChains
-# from selenium.webdriver.chrome.service import Service
-
-# import schedule
-# from pyvirtualdisplay import Display
-# import os
-# import subprocess
-
-
 # os.chmod('/usr/local/bin/chromedriver', 755)
 # display = Display(visible=0, size=(1024, 768))
 # display.start()
 
 def start_driver():
     options = webdriver.ChromeOptions()
-    # options.add_argument('headless')
-    # options.add_argument("enable-automation")
-    # options.add_argument("--dns-prefetch-disable")
-    # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+
+    # options.add_experimental_option("detach", True)
 
     options.add_argument('--no-sandbox')
-    # options.add_experimental_option("detach", True)
     options.add_argument("--disable-gpu")
     options.add_argument("--disable-browser-side-navigation")
     options.add_argument("--force-device-scale-factor=1")
@@ -189,7 +175,6 @@ def check_all():
                     "changer": changer
                 }
                 data[len(data) + 1] = data_transaction
-                print(data_transaction)
             except:
                 continue
 
