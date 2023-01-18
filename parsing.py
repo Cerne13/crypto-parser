@@ -204,15 +204,15 @@ def check_blockchain(driver):
 
 
 def run_checks(*funcs):
-    try:
-        for func in funcs:
+    for func in funcs:
+        try:
             driver = start_driver()
             func(driver)
             driver.quit()
 
-    except Exception as e:
-        print(e)
-        driver.quit()
+        except Exception as e:
+            print(e)
+            driver.quit()
 
 
 run_checks(
