@@ -69,23 +69,6 @@ def create_data_transaction(amount, time_trans, hash_, currency):
     }
 
 
-def run_checks(*funcs):
-    try:
-        for func in funcs:
-            driver = start_driver()
-            func(driver)
-            driver.quit()
-
-    except Exception as e:
-        print(e)
-        driver.quit()
-    finally:
-        print(data)
-
-    # TODO: create token save
-    # save_new_token(data)
-
-
 def check_all():
     data = {}
     print(data if data else "The data object is empty yet")
@@ -204,6 +187,22 @@ def check_all():
             except Exception as e:
                 print(e)
                 continue
+
+    def run_checks(*funcs):
+        try:
+            for func in funcs:
+                driver = start_driver()
+                func(driver)
+                driver.quit()
+
+        except Exception as e:
+            print(e)
+            driver.quit()
+        finally:
+            print(data)
+
+        # TODO: create token save
+        # save_new_token(data)
 
     run_checks(
         check_tronscan,
