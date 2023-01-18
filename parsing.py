@@ -1,4 +1,6 @@
+import json
 import random
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -54,6 +56,14 @@ def get_current_date():
     return curr_date, curr_month, curr_year
 
 
+def send_json_to_url(url, data):
+    try:
+        r = requests.post(url, json=data)
+        print(f"Status Code: {r.status_code}, Response: {r.json()}")
+    except Exception as e:
+        print(e)
+
+
 def create_data_transaction(amount, time_trans, hash_, currency):
     date = get_current_date()
     return {
@@ -68,141 +78,145 @@ def create_data_transaction(amount, time_trans, hash_, currency):
     }
 
 
-def check_all():
+def check_tronscan(driver):
     data = {}
-    print(data if data else "The data object is empty yet")
+    url = 'https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
+    driver.get(url)
 
-    def check_tronscan(driver):
-        url = 'https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
-        driver.get(url)
+    check = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.CSS_SELECTOR, '.csv-wrap'))
+    print(bool(check))
 
-        check = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.CSS_SELECTOR, '.csv-wrap'))
-        print(bool(check))
-
-        for i in range(20):
-            try:
-                amount = driver.find_element(
-                    By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[1]/span/span'
-                ).text
-                amount = "$" + amount
-
-                time_trans = driver.find_element(
-                    By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[4]/span/div/div'
-                ).text
-                time_trans = time_trans.split(" ")[0]
-                time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
-                time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
-                             time_trans.split(" ")[1].split(".")[0].split(":")[1]
-
-                tron_hash = driver.find_element(
-                    By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[1]'
-                ).text
-                hash2 = driver.find_element(
-                    By.XPATH,
-                    f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[2]'
-                ).text
-                tron_hash += hash2
-
-                data_transaction = create_data_transaction(amount, time_trans, tron_hash, "TRON")
-                data[len(data) + 1] = data_transaction
-            except Exception as e:
-                print(e)
-                continue
-
-    def check_etherscan(driver):
-        url = "https://etherscan.io/txs"
-        driver.get(url)
-        # driver.save_screenshot('ether.png')
-        time.sleep(1)
-        for i in range(50):
-            try:
-                eth_hash = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[2]/span/a"
-                ).text
-
-                time_trans = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[6]/span"
-                ).text
-                time_trans = time_trans.split(" ")[0]
-                time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
-                time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
-                             time_trans.split(" ")[1].split(".")[0].split(":")[1]
-
-                amount = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[10]"
-                ).text
-
-                data_transaction = create_data_transaction(amount, time_trans, eth_hash, "ETH")
-                data[len(data) + 1] = data_transaction
-            except Exception as e:
-                print(e)
-                continue
-
-    def check_blockchain(driver):
-        # We will go to mempool if we access unconfirmed transactions page directly.
-        # So we need to navigate from here
-        # target_url = "https://www.blockchain.com/btc/unconfirmed-transactions"
-        initial_url = 'https://www.blockchain.com/explorer?currency=BTC&stat=transactions'
-
-        driver.get(initial_url)
-        time.sleep(1)
-
-        # Won't scrape unless button to target page is in view
-        driver.execute_script("window.scrollTo(0, 650)")
-
-        button = driver.find_element(By.CSS_SELECTOR, 'div.sc-18ep7w8-5.sc-18ep7w8-7.rKfqM.fLbSjJ button:last-child')
-        button.click()
-
-        time.sleep(2)
-
-        for i in range(50):
-            try:
-                btc_hash = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[1]/div[2]/a"
-                ).text
-                time_trans = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[2]/div[2]/span"
-                ).text
-                amount = driver.find_element(
-                    by=By.XPATH,
-                    value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[4]/div[2]/span"
-                ).text
-
-                data_transaction = create_data_transaction(amount, time_trans, btc_hash, "BLOCK")
-                data[len(data) + 1] = data_transaction
-            except Exception as e:
-                print(e)
-                continue
-
-    def run_checks(*funcs):
+    for i in range(20):
         try:
-            for func in funcs:
-                driver = start_driver()
-                func(driver)
-                driver.quit()
+            amount = driver.find_element(
+                By.XPATH,
+                f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[1]/span/span'
+            ).text
+            amount = "$" + amount
 
+            time_trans = driver.find_element(
+                By.XPATH,
+                f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[4]/span/div/div'
+            ).text
+            time_trans = time_trans.split(" ")[0]
+            time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
+            time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
+                         time_trans.split(" ")[1].split(".")[0].split(":")[1]
+
+            tron_hash = driver.find_element(
+                By.XPATH,
+                f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[1]'
+            ).text
+            hash2 = driver.find_element(
+                By.XPATH,
+                f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[2]'
+            ).text
+            tron_hash += hash2
+
+            data_transaction = create_data_transaction(amount, time_trans, tron_hash, "TRON")
+            data[len(data) + 1] = data_transaction
         except Exception as e:
             print(e)
+            continue
+
+    print(json.dumps(data))
+    # send_json_to_url('#', data)
+
+
+def check_etherscan(driver):
+    data = {}
+    url = "https://etherscan.io/txs"
+    driver.get(url)
+    # driver.save_screenshot('ether.png')
+    time.sleep(1)
+    for i in range(50):
+        try:
+            eth_hash = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[2]/span/a"
+            ).text
+
+            time_trans = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[6]/span"
+            ).text
+            time_trans = time_trans.split(" ")[0]
+            time_trans = str(datetime.datetime.now() - datetime.timedelta(seconds=int(time_trans)))
+            time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
+                         time_trans.split(" ")[1].split(".")[0].split(":")[1]
+
+            amount = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[10]"
+            ).text
+
+            data_transaction = create_data_transaction(amount, time_trans, eth_hash, "ETH")
+            data[len(data) + 1] = data_transaction
+        except Exception as e:
+            print(e)
+            continue
+
+    # print(json.dumps(data))
+    send_json_to_url('#', data)
+
+
+def check_blockchain(driver):
+    data = {}
+    # We will go to mempool if we access unconfirmed transactions page directly.
+    # So we need to navigate from here
+    # target_url = "https://www.blockchain.com/btc/unconfirmed-transactions"
+    initial_url = 'https://www.blockchain.com/explorer?currency=BTC&stat=transactions'
+
+    driver.get(initial_url)
+    time.sleep(1)
+
+    # Won't scrape unless button to target page is in view
+    driver.execute_script("window.scrollTo(0, 650)")
+
+    button = driver.find_element(By.CSS_SELECTOR, 'div.sc-18ep7w8-5.sc-18ep7w8-7.rKfqM.fLbSjJ button:last-child')
+    button.click()
+
+    time.sleep(2)
+
+    for i in range(50):
+        try:
+            btc_hash = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[1]/div[2]/a"
+            ).text
+            time_trans = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[2]/div[2]/span"
+            ).text
+            amount = driver.find_element(
+                by=By.XPATH,
+                value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[4]/div[2]/span"
+            ).text
+
+            data_transaction = create_data_transaction(amount, time_trans, btc_hash, "BLOCK")
+            data[len(data) + 1] = data_transaction
+        except Exception as e:
+            print(e)
+            continue
+
+    # print(json.dumps(data))
+    send_json_to_url('#', data)
+
+
+def run_checks(*funcs):
+    try:
+        for func in funcs:
+            driver = start_driver()
+            func(driver)
             driver.quit()
-        finally:
-            print(data)
 
-        # TODO: create token save
-        # save_new_token(data)
-
-    run_checks(
-        check_tronscan,
-        check_etherscan,
-        check_blockchain
-    )
+    except Exception as e:
+        print(e)
+        driver.quit()
 
 
-check_all()
+run_checks(
+    check_tronscan,
+    check_etherscan,
+    check_blockchain
+)
