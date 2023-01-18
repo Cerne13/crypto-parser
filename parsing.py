@@ -49,6 +49,20 @@ def get_curr_date():
     return (curr_date, curr_month, curr_year)
 
 
+def create_data_transaction(amount, time_trans, hash_, currency):
+    date = get_curr_date()
+    return {
+        "amount": amount,
+        "time_trans": time_trans,
+        "day_trans": date[0],
+        "month_trans": date[1],
+        "year_trans": date[2],
+        "hash": hash_,
+        "birz": currency,
+        "changer": get_random(),
+    }
+
+
 def check_all():
     data = {}
     print(data if data else "The data object is empty yet")
@@ -82,35 +96,20 @@ def check_all():
                 time_trans = time_trans.split(" ")[1].split(".")[0].split(":")[0] + ":" + \
                              time_trans.split(" ")[1].split(".")[0].split(":")[1]
 
-                hash = driver.find_element(
+                tron_hash = driver.find_element(
                     By.XPATH,
                     f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[1]'
                 ).text
-
                 hash2 = driver.find_element(
                     By.XPATH,
                     f'//*[@id="popupContainer"]/div/div/div/div/div/div/div[1]/div/table/tbody/tr[{i + 1}]/td[7]/div/div/span/a/div/div[2]'
                 ).text
-                hash += hash2
+                tron_hash += hash2
 
-                changer = get_random()
-
-                date = get_curr_date()
-
-                data_transaction = {
-                    "amount": amount,
-                    "time_trans": time_trans,
-                    "day_trans": date[0],
-                    "month_trans": date[1],
-                    "year_trans": date[2],
-                    "hash": hash,
-                    "birz": "TRON",
-                    "changer": changer
-                }
-
+                data_transaction = create_data_transaction(amount, time_trans, tron_hash, "TRON")
                 data[len(data) + 1] = data_transaction
-            except Exception as a:
-                print(a)
+            except Exception as e:
+                print(e)
                 continue
 
     def check_etherscan(driver):
@@ -120,7 +119,7 @@ def check_all():
         time.sleep(1)
         for i in range(50):
             try:
-                hash = driver.find_element(
+                eth_hash = driver.find_element(
                     by=By.XPATH,
                     value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[2]/span/a"
                 ).text
@@ -139,24 +138,11 @@ def check_all():
                     value=f"/html/body/div[1]/main/div[3]/div/div/div[3]/table/tbody/tr[{i + 1}]/td[10]"
                 ).text
 
-                changer = get_random()
-
-                date = get_curr_date()
-
-                data_transaction = {
-                    "amount": amount,
-                    "time_trans": time_trans,
-                    "day_trans": date[0],
-                    "month_trans": date[1],
-                    "year_trans": date[2],
-                    "hash": hash,
-                    "birz": "ETH",
-                    "changer": changer
-                }
-
+                data_transaction = create_data_transaction(amount, time_trans, eth_hash, "ETH")
                 data[len(data) + 1] = data_transaction
-            except Exception as a:
-                print(a)
+            except Exception as e:
+                print(e)
+                continue
 
     def check_blockchain(driver):
         # We will go to mempool if we access unconfirmed transactions page directly.
@@ -190,23 +176,10 @@ def check_all():
                     value=f"/html/body/div[1]/div[4]/div[2]/div/div/div[2]/div/div[{i + 2}]/div[4]/div[2]/span"
                 ).text
 
-                changer = get_random()
-
-                date = get_curr_date()
-
-                data_transaction = {
-                    "amount": amount,
-                    "time_trans": time_trans,
-                    "day_trans": date[0],
-                    "month_trans": date[1],
-                    "year_trans": date[2],
-                    "hash": hash,
-                    "birz": "BLOCK",
-                    "changer": changer
-                }
-
+                data_transaction = create_data_transaction(amount, time_trans, btc_hash, "BLOCK")
                 data[len(data) + 1] = data_transaction
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
     try:
