@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
-from threading import Thread
 import datetime
 import time
 
@@ -77,13 +76,8 @@ def check_all():
         url = 'https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
         driver.get(url)
 
-        check_url_success = driver.current_url
-        print(f'Url successfully got: {str(check_url_success)}')
-
-        time.sleep(10)
-
-        check_page_elems_available = driver.find_element(By.CSS_SELECTOR, '.csv-wrap').get_attribute('class')
-        print(f"{'Page successfully got' if check_page_elems_available else 'Error: parsing blocked'}")
+        check = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.CSS_SELECTOR, '.csv-wrap'))
+        print(bool(check))
 
         for i in range(20):
             try:
@@ -209,11 +203,6 @@ def check_all():
         check_etherscan,
         check_blockchain
     )
-
-
-def start_parsing():
-    thread = Thread(target=check_all)
-    thread.start()
 
 
 check_all()
