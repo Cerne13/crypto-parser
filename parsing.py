@@ -41,16 +41,22 @@ def get_random():
     return random.randint(1, 10)
 
 
-def get_curr_date():
+def get_current_date():
+    """
+    :return:
+    current date, current month, current year
+    """
     curr_datetime = datetime.date.today()
+
     curr_date = curr_datetime.day
     curr_month = curr_datetime.month
     curr_year = curr_datetime.year
-    return (curr_date, curr_month, curr_year)
+
+    return curr_date, curr_month, curr_year
 
 
 def create_data_transaction(amount, time_trans, hash_, currency):
-    date = get_curr_date()
+    date = get_current_date()
     return {
         "amount": amount,
         "time_trans": time_trans,
@@ -61,6 +67,23 @@ def create_data_transaction(amount, time_trans, hash_, currency):
         "birz": currency,
         "changer": get_random(),
     }
+
+
+def run_checks(*funcs):
+    try:
+        for func in funcs:
+            driver = start_driver()
+            func(driver)
+            driver.quit()
+
+    except Exception as e:
+        print(e)
+        driver.quit()
+    finally:
+        print(data)
+
+    # TODO: create token save
+    # save_new_token(data)
 
 
 def check_all():
@@ -182,28 +205,11 @@ def check_all():
                 print(e)
                 continue
 
-    try:
-        driver = start_driver()
-        check_tronscan(driver)
-        driver.quit()
-
-        driver = start_driver()
-        check_etherscan(driver)
-        driver.quit()
-
-        # TODO: redo blockchain.com with API instead of scraping
-        driver = start_driver()
-        check_blockchain(driver)
-
-    except Exception as e:
-        print(e)
-        driver.quit()
-    finally:
-        driver.quit()
-        print(data)
-
-        # TODO: create token save
-        # save_new_token(data)
+    run_checks(
+        check_tronscan,
+        check_etherscan,
+        check_blockchain
+    )
 
 
 def start_parsing():
